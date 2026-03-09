@@ -1,0 +1,180 @@
+{
+  "name": "Patient Growth Intake Workflow",
+  "version": "1.0.0",
+  "description": "Workflow n8n de qualification et routage des leads pour cliniques esthétiques",
+  "nodes": [
+    {
+      "id": "webhook_trigger",
+      "type": "n8n-nodes-base.webhook",
+      "name": "Form Submission Webhook",
+      "position": [250, 300],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "patient-intake",
+        "responseMode": "onReceived",
+        "responseData": "allEntries"
+      },
+      "notes": "Point d'entrée : reçoit les soumissions du formulaire Tally/Typeform via webhook"
+    },
+    {
+      "id": "validate_data",
+      "type": "n8n-nodes-base.if",
+      "name": "Validate Required Fields",
+      "position": [450, 300],
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.email}}",
+              "operation": "isNotEmpty"
+            },
+            {
+              "value1": "={{$json.phone}}",
+              "operation": "isNotEmpty"
+            },
+            {
+              "value1": "={{$json.city}}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "notes": "Vérifie que les champs obligatoires sont présents : email, téléphone, ville"
+    },
+    {
+      "id": "score_lead",
+      "type": "n8n-nodes-base.code",
+      "name": "Score Lead",
+      "position": [650, 250],
+      "parameters": {
+        "jsCode": "// Scoring du lead basé sur les réponses du formulaire\nconst data = $input.first().json;\n\nlet score = 0;\n\n// Critère 1 : Ville cible (max 20 points)\nconst targetCities = ['paris', 'lyon', 'marseille', 'bordeaux', 'nice', 'toulouse', 'nantes', 'strasbourg', 'lille', 'montpellier'];\nif (targetCities.includes(data.city?.toLowerCase())) {\n  score += 20;\n} else {\n  score += 5;\n}\n\n// Critère 2 : Type d'acte (max 25 points)\nconst premiumActs = ['chirurgie', 'implants', 'liposuccion', 'rhinoplastie'];\nconst midActs = ['injections', 'botox', 'acide hyaluronique', 'laser'];\nif (premiumActs.some(act => data.treatment?.toLowerCase().includes(act))) {\n  score += 25;\n} else if (midActs.some(act => data.treatment?.toLowerCase().includes(act))) {\n  score += 15;\n} else {\n  score += 5;\n}\n\n// Critère 3 : Budget confirmé (max 20 points)\nif (data.budget === 'oui' || data.budget === 'yes' || data.budget_range === '> 1000') {\n  score += 20;\n} else if (data.budget_range === '500-1000') {\n  score += 10;\n} else {\n  score += 5;\n}\n\n// Critère 4 : Disponibilité (max 15 points)\nif (data.availability === 'cette_semaine' || data.availability === 'this_week') {\n  score += 15;\n} else if (data.availability === 'ce_mois' || data.availability === 'this_month') {\n  score += 10;\n} else {\n  score += 5;\n}\n\n// Critère 5 : Source (max 20 points)\nif (data.source === 'meta_ads') {\n  score += 20;\n} else if (data.source === 'google') {\n  score += 15;\n} else {\n  score += 10;\n}\n\n// Classification\nlet category;\nif (score >= 70) {\n  category = 'HOT';\n} else if (score >= 50) {\n  category = 'WARM';\n} else {\n  category = 'COLD';\n}\n\nreturn {\n  ...data,\n  lead_score: score,\n  lead_category: category,\n  scored_at: new Date().toISOString()\n};"
+      },
+      "notes": "Score le lead selon ville, type d'acte, budget, disponibilité et source"
+    },
+    {
+      "id": "route_lead",
+      "type": "n8n-nodes-base.switch",
+      "name": "Route by Category",
+      "position": [850, 250],
+      "parameters": {
+        "dataPropertyName": "lead_category",
+        "rules": [
+          { "value": "HOT" },
+          { "value": "WARM" },
+          { "value": "COLD" }
+        ]
+      },
+      "notes": "Route le lead vers le bon workflow selon sa catégorie"
+    },
+    {
+      "id": "hot_notification",
+      "type": "n8n-nodes-base.emailSend",
+      "name": "Notify — HOT Lead",
+      "position": [1050, 150],
+      "parameters": {
+        "toEmail": "{{$env.CLINIC_EMAIL}}",
+        "subject": "🔥 Lead HOT — {{$json.first_name}} {{$json.last_name}} (Score: {{$json.lead_score}})",
+        "text": "Nouveau lead HOT !\n\nNom: {{$json.first_name}} {{$json.last_name}}\nEmail: {{$json.email}}\nTéléphone: {{$json.phone}}\nVille: {{$json.city}}\nTraitement: {{$json.treatment}}\nScore: {{$json.lead_score}}/100\n\nAction : appeler dans les 2h."
+      },
+      "notes": "Notification immédiate pour les leads HOT — à contacter dans les 2h"
+    },
+    {
+      "id": "warm_notification",
+      "type": "n8n-nodes-base.emailSend",
+      "name": "Notify — WARM Lead",
+      "position": [1050, 300],
+      "parameters": {
+        "toEmail": "{{$env.CLINIC_EMAIL}}",
+        "subject": "🟡 Lead WARM — {{$json.first_name}} {{$json.last_name}} (Score: {{$json.lead_score}})",
+        "text": "Nouveau lead WARM.\n\nNom: {{$json.first_name}} {{$json.last_name}}\nEmail: {{$json.email}}\nTéléphone: {{$json.phone}}\nVille: {{$json.city}}\nTraitement: {{$json.treatment}}\nScore: {{$json.lead_score}}/100\n\nAction : envoyer lien Calendly + email de nurturing."
+      },
+      "notes": "Notification pour les leads WARM — nurturing automatique"
+    },
+    {
+      "id": "cold_to_sequence",
+      "type": "n8n-nodes-base.code",
+      "name": "Add COLD to Sequence",
+      "position": [1050, 450],
+      "parameters": {
+        "jsCode": "// Ajouter le lead froid à la séquence email long-terme\nconst data = $input.first().json;\nreturn {\n  action: 'add_to_email_sequence',\n  sequence_name: 'cold_lead_nurturing',\n  email: data.email,\n  first_name: data.first_name,\n  city: data.city,\n  treatment: data.treatment,\n  added_at: new Date().toISOString()\n};"
+      },
+      "notes": "Leads froids ajoutés à une séquence email automatique"
+    },
+    {
+      "id": "save_to_sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "name": "Save to Google Sheets",
+      "position": [1250, 300],
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": "{{$env.GOOGLE_SHEET_ID}}",
+        "sheetName": "Leads",
+        "columns": {
+          "mappingMode": "autoMapInputData"
+        }
+      },
+      "notes": "Sauvegarde tous les leads (HOT, WARM, COLD) dans Google Sheets pour tracking"
+    },
+    {
+      "id": "hot_calendly",
+      "type": "n8n-nodes-base.httpRequest",
+      "name": "Send Calendly Link (HOT)",
+      "position": [1250, 150],
+      "parameters": {
+        "method": "POST",
+        "url": "{{$env.WHATSAPP_API_URL}}/messages",
+        "body": {
+          "to": "{{$json.phone}}",
+          "type": "text",
+          "text": "Bonjour {{$json.first_name}} ! Merci pour votre intérêt. Réservez votre consultation gratuite ici : {{$env.CALENDLY_URL}}"
+        }
+      },
+      "notes": "Envoi automatique du lien Calendly par WhatsApp pour les leads HOT"
+    },
+    {
+      "id": "invalid_data_log",
+      "type": "n8n-nodes-base.code",
+      "name": "Log Invalid Submission",
+      "position": [650, 400],
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconsole.log('Invalid submission received:', JSON.stringify(data));\nreturn {\n  status: 'invalid',\n  reason: 'Missing required fields (email, phone, or city)',\n  data: data,\n  logged_at: new Date().toISOString()\n};"
+      },
+      "notes": "Log les soumissions invalides pour debug et amélioration du formulaire"
+    }
+  ],
+  "connections": {
+    "webhook_trigger": {
+      "main": [["validate_data"]]
+    },
+    "validate_data": {
+      "true": [["score_lead"]],
+      "false": [["invalid_data_log"]]
+    },
+    "score_lead": {
+      "main": [["route_lead"]]
+    },
+    "route_lead": {
+      "HOT": [["hot_notification", "hot_calendly", "save_to_sheets"]],
+      "WARM": [["warm_notification", "save_to_sheets"]],
+      "COLD": [["cold_to_sequence", "save_to_sheets"]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true
+  },
+  "env_variables_required": [
+    "CLINIC_EMAIL",
+    "GOOGLE_SHEET_ID",
+    "WHATSAPP_API_URL",
+    "CALENDLY_URL"
+  ],
+  "setup_instructions": [
+    "1. Importer ce workflow dans n8n",
+    "2. Configurer les variables d'environnement (CLINIC_EMAIL, GOOGLE_SHEET_ID, etc.)",
+    "3. Connecter le webhook au formulaire Tally/Typeform",
+    "4. Tester avec un lead de test",
+    "5. Activer le workflow en production"
+  ]
+}

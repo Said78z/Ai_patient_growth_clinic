@@ -1,0 +1,108 @@
+{
+  "landing_page": {
+    "version": "1.0.0",
+    "language": "fr",
+    "target": "Cliniques esthétiques — France"
+  },
+  "hero": {
+    "headline": "Remplissez votre agenda de consultations qualifiées — en automatique",
+    "subheadline": "Un système d'acquisition patient basé sur l'IA et la publicité Meta, conçu exclusivement pour les cliniques esthétiques.",
+    "cta_primary": "Réserver mon audit gratuit",
+    "cta_secondary": "Voir comment ça marche"
+  },
+  "problem": {
+    "title": "Le problème",
+    "points": [
+      "Votre agenda dépend du bouche-à-oreille — imprévisible et non scalable",
+      "Les patients cherchent en ligne mais ne vous trouvent pas",
+      "Vous perdez du temps avec des leads non qualifiés",
+      "Les agences marketing généralistes ne comprennent pas le médical",
+      "Vous n'avez pas le temps de gérer le marketing vous-même"
+    ]
+  },
+  "solution": {
+    "title": "Notre solution",
+    "description": "Un système clé-en-main qui génère des consultations qualifiées pendant que vous vous concentrez sur vos patients.",
+    "steps": [
+      {
+        "number": 1,
+        "title": "Landing page optimisée",
+        "description": "Page dédiée à votre acte principal, copy conforme aux réglementations médicales, formulaire qualifiant intégré."
+      },
+      {
+        "number": 2,
+        "title": "Campagnes Meta Ads ciblées",
+        "description": "Publicités Facebook & Instagram ciblées sur votre zone géographique. On touche les patients qui cherchent exactement ce que vous proposez."
+      },
+      {
+        "number": 3,
+        "title": "Qualification automatique",
+        "description": "Chaque lead est automatiquement filtré, scoré et routé. Seuls les patients qualifiés arrivent dans votre agenda."
+      },
+      {
+        "number": 4,
+        "title": "Prise de RDV automatisée",
+        "description": "Intégration Calendly avec rappels WhatsApp et SMS. Taux de présence > 70%."
+      }
+    ]
+  },
+  "guarantee": {
+    "title": "Notre garantie",
+    "text": "10 consultations qualifiées en 30 jours — ou on continue gratuitement jusqu'à atteindre l'objectif.",
+    "definition": "Un lead qualifié = patient dans votre zone, intéressé par un acte que vous proposez, budget confirmé, RDV pris."
+  },
+  "social_proof": {
+    "title": "Résultats",
+    "stats": [
+      {
+        "value": "< 30 €",
+        "label": "Coût par lead qualifié"
+      },
+      {
+        "value": "7 jours",
+        "label": "Temps de mise en place"
+      },
+      {
+        "value": "100%",
+        "label": "Automatisé"
+      },
+      {
+        "value": "> 70%",
+        "label": "Taux de présence RDV"
+      }
+    ]
+  },
+  "faq": [
+    {
+      "question": "Combien ça coûte ?",
+      "answer": "Le setup est à 1 500 € (one-shot). La gestion mensuelle commence à 997 €/mois. Le budget publicitaire (payé directement à Meta) est recommandé à partir de 500 €/mois."
+    },
+    {
+      "question": "Combien de temps avant les premiers résultats ?",
+      "answer": "Le système est opérationnel en 7 jours. Les premières consultations arrivent généralement dans les 2 premières semaines."
+    },
+    {
+      "question": "C'est conforme aux réglementations médicales ?",
+      "answer": "Oui. Notre copy est conçue pour respecter les règles de publicité médicale en France. Pas de promesses de résultats, pas d'avant/après non autorisés."
+    },
+    {
+      "question": "Je dois gérer quelque chose ?",
+      "answer": "Non. On s'occupe de tout : landing page, publicités, qualification, prise de RDV. Vous ne faites que les consultations."
+    },
+    {
+      "question": "Et si ça ne marche pas ?",
+      "answer": "Notre garantie : 10 consultations qualifiées en 30 jours ou on continue gratuitement. Zéro risque pour vous."
+    }
+  ],
+  "final_cta": {
+    "title": "Prêt à remplir votre agenda ?",
+    "subtitle": "Réservez un audit gratuit de 15 minutes. On analyse votre situation et on vous montre exactement comment le système fonctionnerait pour votre clinique.",
+    "button_text": "Réserver mon audit gratuit →",
+    "calendly_url": "https://calendly.com/VOTRE-LIEN"
+  },
+  "footer": {
+    "company": "AI Patient Growth System",
+    "tagline": "Acquisition patient automatisée pour cliniques esthétiques",
+    "legal": "Ce service ne constitue pas un conseil médical. Les résultats peuvent varier selon la localisation, la spécialité et le budget publicitaire."
+  }
+}

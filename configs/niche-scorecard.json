@@ -1,0 +1,101 @@
+{
+  "scorecard": {
+    "name": "Niche Scoring — Cliniques Esthétiques France",
+    "version": "1.0.0",
+    "description": "Grille d'évaluation pour qualifier les prospects cliniques",
+    "max_score": 100
+  },
+  "criteria": [
+    {
+      "id": "market_size",
+      "name": "Taille du marché local",
+      "weight": 15,
+      "scoring": {
+        "5": "Ville > 500K habitants, forte demande esthétique",
+        "3": "Ville 100K-500K habitants, demande modérée",
+        "1": "Ville < 100K, marché limité"
+      }
+    },
+    {
+      "id": "competition",
+      "name": "Niveau de concurrence digitale",
+      "weight": 10,
+      "scoring": {
+        "5": "Peu de cliniques avec présence digitale forte",
+        "3": "Concurrence modérée, quelques acteurs visibles",
+        "1": "Marché saturé, nombreuses cliniques bien positionnées"
+      }
+    },
+    {
+      "id": "ltv",
+      "name": "LTV patient estimée",
+      "weight": 20,
+      "scoring": {
+        "5": "Actes premium > 2000 € (chirurgie, implants)",
+        "3": "Actes moyens 500-2000 € (injections, laser)",
+        "1": "Actes entrée de gamme < 500 € (peeling, micro-needling)"
+      }
+    },
+    {
+      "id": "digital_maturity",
+      "name": "Maturité digitale actuelle",
+      "weight": 15,
+      "scoring": {
+        "5": "Pas de site ou site obsolète, zéro ads, zéro funnel",
+        "3": "Site correct mais pas de funnel ni d'ads",
+        "1": "Déjà bien positionné digitalement, peu de marge"
+      }
+    },
+    {
+      "id": "decision_speed",
+      "name": "Vitesse de décision",
+      "weight": 10,
+      "scoring": {
+        "5": "Praticien seul, décide vite",
+        "3": "Petit comité, décision en 1-2 semaines",
+        "1": "Structure lourde, process long, comité multiple"
+      }
+    },
+    {
+      "id": "budget",
+      "name": "Budget marketing disponible",
+      "weight": 15,
+      "scoring": {
+        "5": "> 3000 €/mois disponible pour le marketing digital",
+        "3": "1000-3000 €/mois",
+        "1": "< 1000 €/mois ou réticent à investir"
+      }
+    },
+    {
+      "id": "pain_level",
+      "name": "Niveau de douleur",
+      "weight": 15,
+      "scoring": {
+        "5": "Agenda vide, perte de CA visible, urgence exprimée",
+        "3": "Manque de consultations mais pas critique",
+        "1": "Satisfait de la situation actuelle"
+      }
+    }
+  ],
+  "qualification_thresholds": {
+    "hot_lead": {
+      "min_score": 70,
+      "action": "Call immédiat, proposition dans les 48h"
+    },
+    "warm_lead": {
+      "min_score": 50,
+      "action": "Nurturing, audit gratuit, follow-up à J+7"
+    },
+    "cold_lead": {
+      "min_score": 0,
+      "action": "Ajout à la séquence email long-terme"
+    }
+  },
+  "disqualifiers": [
+    "Budget total < 500 €/mois",
+    "Pas de praticien décideur accessible",
+    "Clinique en cessation d'activité",
+    "Déjà sous contrat exclusif avec une agence",
+    "Hors zone géographique cible"
+  ]
+}
