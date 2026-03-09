@@ -1,0 +1,86 @@
+[
+  {
+    "nom": "Clinique Éclat Paris 16",
+    "score": 84,
+    "segment": "HOT",
+    "raisons": [
+      "Site web moderne avec prise de RDV Calendly et 8 pages soins détaillées",
+      "312 avis Google avec note 4.8/5 : forte crédibilité locale",
+      "Publicités Meta actives (3 créas détectées) : budget pub existant",
+      "Communauté Instagram engagée (4 200 abonnés, fréquence 3x/semaine)",
+      "Ouverture d'un second site annoncée : signal de croissance fort",
+      "Email direct disponible : prise de contact facilitée"
+    ],
+    "priorite_contact": "haute"
+  },
+  {
+    "nom": "Centre Médical Esthétique Riviera Nice",
+    "score": 77,
+    "segment": "HOT",
+    "raisons": [
+      "Site web professionnel avec 6 pages soins et formulaire de contact fonctionnel",
+      "248 avis Google avec note 4.7/5 : excellente réputation locale",
+      "Publicités Meta actives sur injections et mésothérapie",
+      "Instagram actif avec stories régulières et témoignages patients",
+      "Gamme étendue (botox, fillers, laser, PRP) : besoin complexe en acquisition",
+      "WhatsApp Business et email visibles sur le site"
+    ],
+    "priorite_contact": "haute"
+  },
+  {
+    "nom": "Institut Beauté Laser Lyon",
+    "score": 52,
+    "segment": "WARM",
+    "raisons": [
+      "Site web existant mais daté, sans formulaire ni prise de RDV en ligne",
+      "87 avis Google avec note 4.2 : présence locale correcte mais limitée",
+      "Aucune publicité Meta détectée : potentiel d'activation élevé",
+      "Instagram peu actif (dernière publication il y a 3 semaines)",
+      "Nouveau soin laser CO2 annoncé : signal de croissance modéré",
+      "Contact uniquement par téléphone : accès décideur à qualifier"
+    ],
+    "priorite_contact": "moyenne"
+  },
+  {
+    "nom": "Dermoesthétique Bordeaux Sud",
+    "score": 45,
+    "segment": "WARM",
+    "raisons": [
+      "Site web fonctionnel avec liste de soins mais sans CTA de réservation",
+      "63 avis Google avec note 4.0 : présence établie mais non optimisée",
+      "Compte Facebook existant, peu engagé (dernière publication il y a 1 mois)",
+      "Aucune publicité Meta détectée",
+      "Offre lisible (épilation, soin visage, corps) mais positionnement généraliste",
+      "Numéro de téléphone visible mais email non publié"
+    ],
+    "priorite_contact": "moyenne"
+  },
+  {
+    "nom": "Cabinet Dr. Martin Esthétique",
+    "score": 18,
+    "segment": "COLD",
+    "raisons": [
+      "Aucun site web : pas de présence digitale exploitable",
+      "Seulement 12 avis Google avec note 3.9 : crédibilité faible",
+      "Aucune présence sur les réseaux sociaux identifiée",
+      "Aucune publicité Meta détectée",
+      "Informations de contact insuffisantes pour joindre le décideur",
+      "Offre de soins indéterminée : besoin difficile à qualifier"
+    ],
+    "priorite_contact": "basse"
+  },
+  {
+    "nom": "Espace Bien-Être Metz",
+    "score": 31,
+    "segment": "COLD",
+    "raisons": [
+      "Site web en construction depuis plus de 6 mois",
+      "27 avis Google avec note 4.1 : base client existante mais très faible volume",
+      "Aucune activité sur réseaux sociaux depuis plus de 6 mois",
+      "Aucune publicité Meta détectée",
+      "Offre centrée sur un seul soin (massage + soin visage basique)",
+      "Contact uniquement via le téléphone de la réception"
+    ],
+    "priorite_contact": "basse"
+  }
+]

@@ -1,0 +1,88 @@
+{
+  "agent": "QUALIFIER",
+  "version": "1.0.0",
+  "description": "Scorer les cliniques esthétiques selon leur intérêt commercial pour l'agence AI Patient Growth System.",
+  "criteres": {
+    "presence_digitale": {
+      "poids": 20,
+      "description": "Présence sur Google Maps, réseaux sociaux, publicités actives, avis en ligne.",
+      "niveaux": {
+        "fort": { "min": 16, "max": 20, "indicateurs": ["Site web actif", "Profil Google Maps complet", "≥200 avis Google", "Présence Instagram/Facebook active", "Publicités Meta détectées"] },
+        "moyen": { "min": 10, "max": 15, "indicateurs": ["Site web basique", "Profil Google Maps incomplet", "50–199 avis Google", "Réseaux sociaux peu actifs"] },
+        "faible": { "min": 0, "max": 9, "indicateurs": ["Pas de site web", "<50 avis Google", "Absence sur réseaux sociaux"] }
+      }
+    },
+    "clarte_positionnement": {
+      "poids": 15,
+      "description": "La clinique a une offre claire, une spécialisation visible et un message différenciant.",
+      "niveaux": {
+        "fort": { "min": 13, "max": 15, "indicateurs": ["Spécialisation niche (ex. injections, laser)", "Message différenciant explicite", "Tarifs visibles ou fourchette communiquée"] },
+        "moyen": { "min": 8, "max": 12, "indicateurs": ["Offre généraliste mais lisible", "Quelques spécialisations mentionnées"] },
+        "faible": { "min": 0, "max": 7, "indicateurs": ["Offre confuse ou trop large", "Pas de différenciation visible"] }
+      }
+    },
+    "site_exploitable": {
+      "poids": 20,
+      "description": "Existence d'un site web avec pages de soins, formulaire de contact ou prise de RDV.",
+      "niveaux": {
+        "fort": { "min": 16, "max": 20, "indicateurs": ["Site moderne avec CTA clairs", "Formulaire ou Calendly intégré", "Pages soins détaillées", "Blog ou contenu SEO"] },
+        "moyen": { "min": 9, "max": 15, "indicateurs": ["Site existant mais daté", "Contact par téléphone uniquement", "Quelques pages soins"] },
+        "faible": { "min": 0, "max": 8, "indicateurs": ["Pas de site", "Site en construction", "Lien brisé"] }
+      }
+    },
+    "signaux_croissance": {
+      "poids": 20,
+      "description": "Indicateurs d'une clinique en expansion : nouveaux soins, recrutements, second site, publicités récentes.",
+      "niveaux": {
+        "fort": { "min": 16, "max": 20, "indicateurs": ["Publicités Meta actives récentes", "Nouveaux soins annoncés", "Ouverture second site", "Recrutement visible", "Partenariats influenceurs"] },
+        "moyen": { "min": 9, "max": 15, "indicateurs": ["Quelques publications récentes", "Activité publicitaire sporadique"] },
+        "faible": { "min": 0, "max": 8, "indicateurs": ["Dernière activité >6 mois", "Aucune publicité détectée", "Contenu obsolète"] }
+      }
+    },
+    "complexite_besoins": {
+      "poids": 10,
+      "description": "La clinique a des besoins complexes en acquisition patient (multi-soins, multi-sites, concurrence forte).",
+      "niveaux": {
+        "fort": { "min": 8, "max": 10, "indicateurs": ["Multi-sites ou franchise", "Forte concurrence locale", "Gamme de soins étendue", "Budget pub potentiel élevé"] },
+        "moyen": { "min": 4, "max": 7, "indicateurs": ["Mono-site avec concurrence modérée", "2–3 soins phares"] },
+        "faible": { "min": 0, "max": 3, "indicateurs": ["Mono-site isolé", "Peu de concurrence", "Besoin simple"] }
+      }
+    },
+    "facilite_contact": {
+      "poids": 15,
+      "description": "Facilité à joindre le décideur : email visible, formulaire, WhatsApp, numéro direct.",
+      "niveaux": {
+        "fort": { "min": 13, "max": 15, "indicateurs": ["Email direct du gérant visible", "WhatsApp Business", "Formulaire fonctionnel", "Profil LinkedIn du fondateur"] },
+        "moyen": { "min": 7, "max": 12, "indicateurs": ["Numéro de téléphone uniquement", "Formulaire générique", "Contact via réseaux sociaux"] },
+        "faible": { "min": 0, "max": 6, "indicateurs": ["Aucun moyen de contact digital", "Formulaire brisé", "Pas de présence décideur"] }
+      }
+    }
+  },
+  "segments": {
+    "HOT": {
+      "score_min": 70,
+      "score_max": 100,
+      "description": "Clinique prioritaire : forte présence, croissance visible, contact facile. Contacter sous 24h.",
+      "priorite_contact": "haute"
+    },
+    "WARM": {
+      "score_min": 40,
+      "score_max": 69,
+      "description": "Clinique intéressante mais nécessitant un nurturing. Présence partielle, potentiel identifiable.",
+      "priorite_contact": "moyenne"
+    },
+    "COLD": {
+      "score_min": 0,
+      "score_max": 39,
+      "description": "Clinique peu prioritaire : présence faible, signaux de croissance absents ou contact difficile.",
+      "priorite_contact": "basse"
+    }
+  },
+  "output_schema": {
+    "nom": "string",
+    "score": "integer (0–100)",
+    "segment": "HOT | WARM | COLD",
+    "raisons": "array of strings",
+    "priorite_contact": "haute | moyenne | basse"
+  }
+}

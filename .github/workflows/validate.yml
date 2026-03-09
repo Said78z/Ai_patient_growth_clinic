@@ -1,0 +1,130 @@
+name: Validate JSON
+
+on:
+  push:
+    paths:
+      - '**/*.json'
+  pull_request:
+    paths:
+      - '**/*.json'
+
+jobs:
+  validate-json:
+    name: Validate JSON files
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install ajv-cli for schema validation
+        run: npm install -g ajv-cli ajv-formats
+
+      - name: Validate all JSON files are well-formed
+        run: |
+          echo "Checking JSON syntax..."
+          find . -name "*.json" \
+            -not -path "./.git/*" \
+            -not -path "./node_modules/*" \
+            | while read f; do
+              echo "  Checking: $f"
+              python3 -c "import json,sys; json.load(open('$f'))" \
+                && echo "    ✓ Valid JSON" \
+                || { echo "    ✗ Invalid JSON: $f"; exit 1; }
+            done
+
+      - name: Validate qualifier output schema
+        run: |
+          echo "Validating clinics-qualified.json against schema..."
+          node - <<'EOF'
+          const Ajv = require('ajv');
+          const addFormats = require('ajv-formats');
+
+          let schema, clinics;
+          try {
+            schema = require('./configs/qualifier-output.schema.json');
+          } catch (e) {
+            console.error('✗ Failed to load configs/qualifier-output.schema.json:', e.message);
+            process.exit(1);
+          }
+          try {
+            clinics = require('./data/clinics-qualified.json');
+          } catch (e) {
+            console.error('✗ Failed to load data/clinics-qualified.json:', e.message);
+            process.exit(1);
+          }
+
+          const ajv = new Ajv({ allErrors: true });
+          addFormats(ajv);
+          const validate = ajv.compile(schema);
+
+          let allValid = true;
+          for (const clinic of clinics) {
+            const valid = validate(clinic);
+            if (!valid) {
+              console.error(`✗ Invalid entry: ${clinic.nom || 'unknown'}`);
+              console.error(validate.errors);
+              allValid = false;
+            } else {
+              console.log(`✓ Valid: ${clinic.nom}`);
+            }
+          }
+
+          if (!allValid) process.exit(1);
+          console.log('All clinic entries are valid.');
+          EOF
+
+      - name: Validate qualifier config structure
+        run: |
+          node - <<'EOF'
+          let config;
+          try {
+            config = require('./configs/qualifier.json');
+          } catch (e) {
+            console.error('✗ Failed to load configs/qualifier.json:', e.message);
+            process.exit(1);
+          }
+
+          const requiredTop = ['agent', 'version', 'criteres', 'segments', 'output_schema'];
+          for (const key of requiredTop) {
+            if (!config[key]) {
+              console.error(`✗ Missing key in qualifier.json: ${key}`);
+              process.exit(1);
+            }
+          }
+
+          const requiredCriteres = [
+            'presence_digitale', 'clarte_positionnement', 'site_exploitable',
+            'signaux_croissance', 'complexite_besoins', 'facilite_contact'
+          ];
+          for (const c of requiredCriteres) {
+            if (!config.criteres[c]) {
+              console.error(`✗ Missing critere in qualifier.json: ${c}`);
+              process.exit(1);
+            }
+          }
+
+          const totalPoids = Object.values(config.criteres)
+            .reduce((sum, c) => sum + c.poids, 0);
+          if (totalPoids !== 100) {
+            console.error(`✗ Total poids must equal 100, got ${totalPoids}`);
+            process.exit(1);
+          }
+
+          const requiredSegments = ['HOT', 'WARM', 'COLD'];
+          for (const s of requiredSegments) {
+            if (!config.segments[s]) {
+              console.error(`✗ Missing segment in qualifier.json: ${s}`);
+              process.exit(1);
+            }
+          }
+
+          console.log('✓ qualifier.json structure is valid.');
+          console.log(`✓ Total poids des critères : ${totalPoids}/100`);
+          EOF

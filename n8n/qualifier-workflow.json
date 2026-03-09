@@ -1,0 +1,168 @@
+{
+  "name": "Qualifier Workflow — AI Patient Growth System",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## QUALIFIER — Scoring Commercial Cliniques\n\nCe workflow reçoit les données d'une clinique esthétique, les envoie au nœud IA QUALIFIER, puis valide et stocke le résultat scoré dans Google Sheets.\n\n⚠️ Le prompt système du nœud **IA — QUALIFIER Score** est la source canonique dans `scripts/qualifier-prompt.md`. Toute modification du prompt doit être répercutée dans les deux fichiers.",
+        "height": 120,
+        "width": 500
+      },
+      "id": "sticky-note-1",
+      "name": "Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [240, 160]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "qualifier",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook — Données Clinique",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 340],
+      "webhookId": "qualifier-clinic-intake"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\n\nconst required = ['clinic_name', 'city'];\nfor (const field of required) {\n  if (!body[field]) {\n    throw new Error(`Champ obligatoire manquant : ${field}`);\n  }\n}\n\nreturn [{\n  json: {\n    clinic_name: body.clinic_name || '',\n    city: body.city || '',\n    website_url: body.website_url || 'non renseigné',\n    gmaps_url: body.gmaps_url || 'non renseigné',\n    google_reviews_count: body.google_reviews_count || 0,\n    google_rating: body.google_rating || 0,\n    instagram_url: body.instagram_url || 'non renseigné',\n    meta_ads_active: body.meta_ads_active || 'non',\n    services_description: body.services_description || 'non renseigné',\n    contact_email: body.contact_email || 'non renseigné',\n    phone: body.phone || 'non renseigné',\n    notes: body.notes || ''\n  }\n}];"
+      },
+      "id": "validate-input",
+      "name": "Valider et Normaliser Entrée",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 340]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Tu es QUALIFIER, un agent IA spécialisé dans le scoring commercial de cliniques esthétiques en France pour l'agence AI Patient Growth System.\n\nTu dois analyser les données d'une clinique et produire un score de 0 à 100 selon 6 critères :\n- presence_digitale (20 pts) : site web, Google Maps, avis, réseaux sociaux, publicités\n- site_exploitable (20 pts) : site avec pages soins, CTA, formulaire ou prise de RDV\n- signaux_croissance (20 pts) : pubs Meta récentes, nouveaux soins, recrutements, second site\n- clarte_positionnement (15 pts) : spécialisation niche, message différenciant, tarifs visibles\n- facilite_contact (15 pts) : email direct, WhatsApp Business, formulaire, LinkedIn gérant\n- complexite_besoins (10 pts) : multi-sites, forte concurrence, gamme étendue\n\nRègles de classification :\n- HOT : score 70–100 → priorite_contact: haute\n- WARM : score 40–69 → priorite_contact: moyenne\n- COLD : score 0–39 → priorite_contact: basse\n\nRéponds UNIQUEMENT avec un objet JSON valide, sans texte supplémentaire :\n{\n  \"nom\": \"\",\n  \"score\": 0,\n  \"segment\": \"HOT | WARM | COLD\",\n  \"raisons\": [],\n  \"priorite_contact\": \"haute | moyenne | basse\"\n}"
+            },
+            {
+              "role": "user",
+              "content": "Nom : {{ $json.clinic_name }}\nVille : {{ $json.city }}\nSite web : {{ $json.website_url }}\nGoogle Maps URL : {{ $json.gmaps_url }}\nNombre d'avis Google : {{ $json.google_reviews_count }}\nNote Google : {{ $json.google_rating }}\nInstagram URL : {{ $json.instagram_url }}\nPublicités Meta actives : {{ $json.meta_ads_active }}\nDescription des soins : {{ $json.services_description }}\nEmail de contact : {{ $json.contact_email }}\nTéléphone : {{ $json.phone }}\nObservations additionnelles : {{ $json.notes }}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.2,
+          "maxTokens": 800
+        }
+      },
+      "id": "ai-qualifier",
+      "name": "IA — QUALIFIER Score",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [680, 340]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.choices?.[0]?.message?.content || $input.first().json.text || '';\n\nlet result;\ntry {\n  const cleaned = raw.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n  result = JSON.parse(cleaned);\n} catch (e) {\n  throw new Error(`Réponse IA invalide (JSON non parsable) : ${raw}`);\n}\n\nconst required = ['nom', 'score', 'segment', 'raisons', 'priorite_contact'];\nfor (const field of required) {\n  if (result[field] === undefined || result[field] === null) {\n    throw new Error(`Champ manquant dans la réponse QUALIFIER : ${field}`);\n  }\n}\n\nif (typeof result.score !== 'number' || result.score < 0 || result.score > 100) {\n  throw new Error(`Score invalide : ${result.score}. Doit être un entier entre 0 et 100.`);\n}\n\nif (!['HOT', 'WARM', 'COLD'].includes(result.segment)) {\n  throw new Error(`Segment invalide : ${result.segment}. Doit être HOT, WARM ou COLD.`);\n}\n\nif (!['haute', 'moyenne', 'basse'].includes(result.priorite_contact)) {\n  throw new Error(`priorite_contact invalide : ${result.priorite_contact}.`);\n}\n\nif (!Array.isArray(result.raisons) || result.raisons.length < 1) {\n  throw new Error('raisons doit être un tableau non vide.');\n}\n\nconst segmentMap = { HOT: 'haute', WARM: 'moyenne', COLD: 'basse' };\nif (segmentMap[result.segment] !== result.priorite_contact) {\n  throw new Error(`Incohérence : segment ${result.segment} doit avoir priorite_contact \"${segmentMap[result.segment]}\" mais reçu \"${result.priorite_contact}\".`);\n}\n\nresult.scored_at = new Date().toISOString();\n\nreturn [{ json: result }];"
+      },
+      "id": "validate-output",
+      "name": "Valider Sortie QUALIFIER",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 340]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $vars.QUALIFIER_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Cliniques Qualifiées",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "nom": "={{ $json.nom }}",
+            "score": "={{ $json.score }}",
+            "segment": "={{ $json.segment }}",
+            "raisons": "={{ $json.raisons.join(' | ') }}",
+            "priorite_contact": "={{ $json.priorite_contact }}",
+            "scored_at": "={{ $json.scored_at }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "sheets-append",
+      "name": "Google Sheets — Enregistrer Score",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1120, 240]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}"
+      },
+      "id": "respond-success",
+      "name": "Répondre — Succès",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1120, 440]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"error\": true, \"message\": \"{{ $json.message }}\" }",
+        "options": {
+          "responseCode": 422
+        }
+      },
+      "id": "respond-error",
+      "name": "Répondre — Erreur",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [900, 520]
+    }
+  ],
+  "connections": {
+    "Webhook — Données Clinique": {
+      "main": [
+        [{ "node": "Valider et Normaliser Entrée", "type": "main", "index": 0 }]
+      ]
+    },
+    "Valider et Normaliser Entrée": {
+      "main": [
+        [{ "node": "IA — QUALIFIER Score", "type": "main", "index": 0 }]
+      ]
+    },
+    "IA — QUALIFIER Score": {
+      "main": [
+        [{ "node": "Valider Sortie QUALIFIER", "type": "main", "index": 0 }]
+      ]
+    },
+    "Valider Sortie QUALIFIER": {
+      "main": [
+        [
+          { "node": "Google Sheets — Enregistrer Score", "type": "main", "index": 0 },
+          { "node": "Répondre — Succès", "type": "main", "index": 0 }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "qualifier-error-handler"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "variables": {
+    "QUALIFIER_SHEET_ID": "Remplacer par l'ID de votre Google Sheet"
+  }
+}
