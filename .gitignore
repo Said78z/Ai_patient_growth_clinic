@@ -27,3 +27,18 @@ tmp/
 *.key
 credentials.json
 token.json
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Runtime pipeline data (directories tracked via .gitkeep)
+data/raw/*.json
+data/raw/*.csv
+data/processed/*.json
+data/processed/*.csv
+outputs/*.json
+outputs/*.csv
+

@@ -1,0 +1,22 @@
+{
+  "targets": [
+    {
+      "name": "Clinique Esthétique Lumière",
+      "city": "Paris",
+      "specialty": "médecine esthétique",
+      "contact": {
+        "first_name": "Sophie",
+        "last_name": "Martin",
+        "email": null,
+        "phone": null,
+        "linkedin": null
+      },
+      "web": {
+        "website": null,
+        "instagram": null,
+        "google_rating": null
+      },
+      "status": "new"
+    }
+  ]
+}
