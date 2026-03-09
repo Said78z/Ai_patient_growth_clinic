@@ -1,0 +1,5 @@
+python-dotenv>=1.0.0
+requests>=2.31.0
+
+# Optional: enable LLM-powered agents by uncommenting and setting OPENAI_API_KEY
+# openai>=1.0.0

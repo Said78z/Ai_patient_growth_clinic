@@ -1,0 +1,29 @@
+{
+  "version": "1.0.0",
+  "description": "Cibles pour le pipeline de prospection AI Patient Growth",
+  "cities": [
+    "Paris",
+    "Lyon",
+    "Marseille",
+    "Bordeaux",
+    "Nice",
+    "Toulouse",
+    "Nantes",
+    "Strasbourg",
+    "Lille",
+    "Montpellier"
+  ],
+  "niches": [
+    "clinique esthétique",
+    "médecine esthétique",
+    "dermatologie esthétique",
+    "clinique anti-âge"
+  ],
+  "max_clinics_per_city": 10,
+  "qualification_threshold": 50,
+  "outreach": {
+    "channels": ["email", "linkedin", "instagram"],
+    "daily_limit": 100,
+    "follow_up_days": [3, 7]
+  }
+}
