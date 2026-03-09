@@ -1,0 +1,98 @@
+{
+  "name": "RESEARCHER — Clinic Analyzer",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "start",
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validate and normalize incoming clinic data\nconst items = $input.all();\n\nreturn items.map(item => {\n  const d = item.json;\n\n  // Ensure all expected fields exist with sensible defaults\n  return {\n    json: {\n      nom:                    d.nom                    ?? '',\n      adresse:                d.adresse                ?? '',\n      ville:                  d.ville                  ?? '',\n      telephone:              d.telephone              ?? '',\n      email:                  d.email                  ?? '',\n      site_web:               d.site_web               ?? '',\n      google_maps_rating:     d.google_maps_rating     ?? null,\n      google_maps_reviews:    d.google_maps_reviews    ?? null,\n      instagram_url:          d.instagram_url          ?? '',\n      facebook_url:           d.facebook_url           ?? '',\n      instagram_followers:    d.instagram_followers    ?? null,\n      facebook_followers:     d.facebook_followers     ?? null,\n      derniere_publication:   d.derniere_publication   ?? '',\n      services:               Array.isArray(d.services) ? d.services : [],\n      publicite_meta_active:  d.publicite_meta_active  ?? null,\n      booking_en_ligne:       d.booking_en_ligne       ?? null,\n      secteur:                d.secteur                ?? ''\n    }\n  };\n});\n"
+      },
+      "id": "normalize",
+      "name": "Normalize Clinic Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Score each clinic and build the RESEARCHER analysis output\nconst AESTHETIC_KEYWORDS = new Set([\n  'botox','hyaluronique','peeling','laser','lipolyse','rhinoplastie',\n  'blépharoplastie','lifting','prp','mésothérapie','épilation',\n  'cryolipolyse','hifu','radiofréquence','injections','esthétique',\n  'aesthetic','médecine esthétique','chirurgie esthétique','skincare',\n  'soin','soins','acide hyaluronique'\n]);\n\nconst MATURITY_SERVICES = new Set([\n  'botox','hyaluronique','laser','lipolyse','prp','mésolift',\n  'cryolipolyse','hifu'\n]);\n\nfunction scoreClinic(d) {\n  let score = 0;\n  const combined = [\n    d.secteur,\n    ...d.services,\n    d.nom\n  ].join(' ').toLowerCase();\n\n  if ([...AESTHETIC_KEYWORDS].some(kw => combined.includes(kw))) score += 3;\n  if (d.site_web)                                                  score += 1;\n  if (d.instagram_url || d.facebook_url)                          score += 1;\n  if (d.google_maps_rating >= 4.0)                                score += 1;\n  if (d.google_maps_reviews >= 20)                                score += 1;\n  if (d.publicite_meta_active === true)                           score += 2;\n  else if (d.publicite_meta_active === false)                     score += 1;\n  if (d.booking_en_ligne)                                         score += 1;\n  return score;\n}\n\nfunction businessSignals(d) {\n  const s = [];\n  if (d.adresse)             s.push(`Adresse physique renseignée : ${d.adresse}`);\n  if (d.google_maps_rating != null) {\n    if (d.google_maps_rating >= 4.0)\n      s.push(`Bonne réputation Google Maps : ${d.google_maps_rating}/5${d.google_maps_reviews ? ` (${d.google_maps_reviews} avis)` : ''}`);\n    else if (d.google_maps_rating >= 3.0)\n      s.push(`Réputation Google Maps moyenne : ${d.google_maps_rating}/5`);\n    else\n      s.push(`Réputation Google Maps faible : ${d.google_maps_rating}/5`);\n  }\n  if (d.google_maps_reviews >= 50)\n    s.push(`Volume d'avis significatif : ${d.google_maps_reviews} avis Google`);\n  const premium = d.services.filter(sv => MATURITY_SERVICES.has(sv.toLowerCase()));\n  if (premium.length) s.push(`Services premium identifiés : ${premium.join(', ')}`);\n  if (d.services.length >= 5) s.push(`Offre de soins diversifiée (${d.services.length} services listés)`);\n  if (d.email)            s.push('Email de contact disponible');\n  if (d.telephone)        s.push('Numéro de téléphone disponible');\n  if (d.booking_en_ligne) s.push('Système de réservation en ligne présent');\n  if (d.publicite_meta_active) s.push('Publicité Meta (Facebook/Instagram) déjà active — budget publicitaire confirmé');\n  return s;\n}\n\nfunction digitalSignals(d) {\n  const s = [];\n  if (d.site_web)  s.push(`Site web présent : ${d.site_web}`);\n  else             s.push(\"Pas de site web détecté — opportunité d'acquisition digitale\");\n  if (d.instagram_url) {\n    let line = `Compte Instagram présent : ${d.instagram_url}`;\n    if (d.instagram_followers != null) line += ` (${d.instagram_followers} abonnés)`;\n    s.push(line);\n  }\n  if (d.facebook_url) {\n    let line = `Page Facebook présente : ${d.facebook_url}`;\n    if (d.facebook_followers != null) line += ` (${d.facebook_followers} abonnés)`;\n    s.push(line);\n  }\n  if (d.derniere_publication) s.push(`Dernière publication détectée : ${d.derniere_publication}`);\n  if (d.instagram_followers != null && d.instagram_followers < 500)\n    s.push(\"Faible audience Instagram — fort potentiel de croissance organique et payante\");\n  if (d.publicite_meta_active === false) s.push(\"Aucune publicité Meta active détectée — opportunité d'acquisition directe\");\n  if (!d.booking_en_ligne)               s.push(\"Pas de réservation en ligne — besoin potentiel d'automatisation\");\n  return s;\n}\n\nfunction missingInfo(d) {\n  const m = [];\n  if (!d.email)                                 m.push('Email de contact');\n  if (!d.telephone)                             m.push('Numéro de téléphone');\n  if (!d.site_web)                              m.push('Site web');\n  if (!d.instagram_url && !d.facebook_url)      m.push('Présence sur les réseaux sociaux');\n  if (d.google_maps_rating == null)             m.push('Note Google Maps');\n  if (d.google_maps_reviews == null)            m.push(\"Nombre d'avis Google\");\n  if (!d.services.length)                       m.push('Liste des services proposés');\n  if (d.publicite_meta_active == null)          m.push('Statut des publicités Meta');\n  if (d.booking_en_ligne == null)               m.push(\"Présence d'un système de réservation en ligne\");\n  if (!d.derniere_publication)                  m.push('Date de dernière activité sur les réseaux sociaux');\n  return m;\n}\n\nfunction buildResume(d) {\n  const location = d.ville || (d.adresse ? d.adresse.split(',').pop().trim() : '');\n  const locStr   = location ? ` (${location})` : '';\n  const sector   = d.secteur || 'clinique';\n  let parts = [`${d.nom}${locStr} — ${sector}.`];\n  if (d.services.length) parts.push(`Services identifiés : ${d.services.slice(0,5).join(', ')}${d.services.length > 5 ? '…' : '.'}`  );\n  if (d.google_maps_rating != null) {\n    parts.push(`Note Google : ${d.google_maps_rating}/5${d.google_maps_reviews ? ` sur ${d.google_maps_reviews} avis.` : '.'}`);\n  }\n  const dp = [];\n  if (d.site_web) dp.push('site web');\n  if (d.instagram_url) dp.push('Instagram');\n  if (d.facebook_url) dp.push('Facebook');\n  parts.push(dp.length ? `Présence digitale : ${dp.join(', ')}.` : 'Présence digitale non confirmée.');\n  return parts.join(' ');\n}\n\nconst ORDER = { fort: 0, moyen: 1, faible: 2 };\n\nconst results = $input.all().map(item => {\n  const d = item.json;\n  const score = scoreClinic(d);\n  const niveau = score >= 7 ? 'fort' : score >= 4 ? 'moyen' : 'faible';\n  return {\n    json: {\n      nom:               d.nom,\n      resume:            buildResume(d),\n      signaux_business:  businessSignals(d),\n      signaux_digitaux:  digitalSignals(d),\n      niveau_pertinence: niveau,\n      infos_manquantes:  missingInfo(d)\n    }\n  };\n});\n\nresults.sort((a, b) => ORDER[a.json.niveau_pertinence] - ORDER[b.json.niveau_pertinence]);\n\nreturn results;\n"
+      },
+      "id": "analyze",
+      "name": "Analyze Clinic (RESEARCHER)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.niveau_pertinence }}",
+              "operation": "equals",
+              "value2": "fort"
+            }
+          ]
+        }
+      },
+      "id": "filter_fort",
+      "name": "Filter — Pertinence FORT",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json, null, 2) }}",
+        "options": {}
+      },
+      "id": "output_fort",
+      "name": "Output — High Priority Clinics",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1120, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json, null, 2) }}",
+        "options": {}
+      },
+      "id": "output_other",
+      "name": "Output — Other Clinics",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1120, 400]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [[{ "node": "Normalize Clinic Data", "type": "main", "index": 0 }]]
+    },
+    "Normalize Clinic Data": {
+      "main": [[{ "node": "Analyze Clinic (RESEARCHER)", "type": "main", "index": 0 }]]
+    },
+    "Analyze Clinic (RESEARCHER)": {
+      "main": [[{ "node": "Filter — Pertinence FORT", "type": "main", "index": 0 }]]
+    },
+    "Filter — Pertinence FORT": {
+      "main": [
+        [{ "node": "Output — High Priority Clinics", "type": "main", "index": 0 }],
+        [{ "node": "Output — Other Clinics",        "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "description": "RESEARCHER workflow: normalizes raw clinic data, scores each clinic against the AI Patient Growth System target profile, and routes high-priority leads (niveau_pertinence=fort) to a dedicated output branch."
+  }
+}
