@@ -1,0 +1,102 @@
+name: Validate Repository Structure
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate JSON files
+        run: |
+          echo "=== Validating JSON files ==="
+          errors=0
+          for f in $(find . -name "*.json" -not -path "./.git/*"); do
+            if python3 -m json.tool "$f" > /dev/null 2>&1; then
+              echo "✅ $f"
+            else
+              echo "❌ $f — Invalid JSON"
+              errors=$((errors + 1))
+            fi
+          done
+          if [ $errors -gt 0 ]; then
+            echo "::error::$errors JSON file(s) failed validation"
+            exit 1
+          fi
+          echo "All JSON files valid."
+
+      - name: Validate repository structure
+        run: |
+          echo "=== Validating directory structure ==="
+          errors=0
+          for dir in docs configs scripts landing n8n; do
+            if [ -d "$dir" ]; then
+              echo "✅ $dir/"
+            else
+              echo "❌ $dir/ — Missing directory"
+              errors=$((errors + 1))
+            fi
+          done
+
+          echo ""
+          echo "=== Validating required files ==="
+          required_files=(
+            "README.md"
+            "docs/positioning.md"
+            "docs/offer.md"
+            "docs/prospecting-playbook.md"
+            "configs/agency.json"
+            "configs/niche-scorecard.json"
+            "scripts/cold-email.md"
+            "scripts/dm-script.md"
+            "scripts/call-script.md"
+            "landing/landing-copy.json"
+            "n8n/patient-growth-intake-workflow.json"
+          )
+
+          for f in "${required_files[@]}"; do
+            if [ -f "$f" ]; then
+              echo "✅ $f"
+            else
+              echo "❌ $f — Missing file"
+              errors=$((errors + 1))
+            fi
+          done
+
+          if [ $errors -gt 0 ]; then
+            echo "::error::$errors validation error(s) found"
+            exit 1
+          fi
+          echo "All structure checks passed."
+
+      - name: Check for secrets in files
+        run: |
+          echo "=== Scanning for potential secrets ==="
+          patterns=(
+            "password\s*[:=]"
+            "secret\s*[:=]"
+            "api_key\s*[:=]"
+            "token\s*[:=]"
+            "private_key"
+          )
+          found=0
+          for pattern in "${patterns[@]}"; do
+            matches=$(grep -ril "$pattern" --include="*.json" --include="*.md" --include="*.yml" --include="*.yaml" . 2>/dev/null | grep -v ".git" || true)
+            if [ -n "$matches" ]; then
+              echo "⚠️  Pattern '$pattern' found in: $matches"
+              found=$((found + 1))
+            fi
+          done
+          if [ $found -gt 0 ]; then
+            echo "::warning::Potential secrets detected — review the files above"
+          else
+            echo "No potential secrets found."
+          fi

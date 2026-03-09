@@ -1,0 +1,95 @@
+{
+  "agency": {
+    "name": "AI Patient Growth System",
+    "version": "1.0.0",
+    "description": "Système d'acquisition patient automatisé pour cliniques esthétiques",
+    "market": "France",
+    "language": "fr"
+  },
+  "niche": {
+    "vertical": "Cliniques esthétiques",
+    "sub_niches": [
+      "Médecine esthétique",
+      "Chirurgie plastique",
+      "Dermatologie esthétique",
+      "Cliniques anti-âge"
+    ],
+    "geo_targets": [
+      "Paris",
+      "Lyon",
+      "Marseille",
+      "Bordeaux",
+      "Nice",
+      "Toulouse",
+      "Nantes",
+      "Strasbourg",
+      "Lille",
+      "Montpellier"
+    ]
+  },
+  "offer": {
+    "tiers": [
+      {
+        "name": "Setup",
+        "price_eur": 1500,
+        "billing": "one-time",
+        "includes": [
+          "Landing page",
+          "Workflow n8n",
+          "Campagne initiale Meta Ads",
+          "Formulaire qualifiant",
+          "Intégration Calendly"
+        ]
+      },
+      {
+        "name": "Growth",
+        "price_eur": 997,
+        "billing": "monthly",
+        "commitment_months": 3,
+        "includes": [
+          "Gestion Meta Ads",
+          "Optimisation continue",
+          "Reporting hebdomadaire",
+          "Support prioritaire"
+        ]
+      },
+      {
+        "name": "Full System",
+        "price_eur": 2500,
+        "billing": "monthly",
+        "commitment_months": 3,
+        "includes": [
+          "Setup complet",
+          "Gestion Meta Ads",
+          "WhatsApp automation",
+          "Reporting premium",
+          "Optimisation continue",
+          "Support dédié"
+        ]
+      }
+    ],
+    "guarantee": "10 consultations qualifiées en 30 jours ou continuation gratuite"
+  },
+  "stack": {
+    "landing_page": ["Framer", "Webflow"],
+    "ads": ["Meta Ads"],
+    "forms": ["Tally", "Typeform"],
+    "automation": ["n8n"],
+    "scheduling": ["Calendly"],
+    "data": ["Google Sheets", "Airtable"],
+    "messaging": ["WhatsApp Business API", "SendGrid", "Twilio"]
+  },
+  "kpis": {
+    "cost_per_qualified_lead_eur": 30,
+    "form_conversion_rate_pct": 15,
+    "appointment_show_rate_pct": 70,
+    "time_to_first_consultation_days": 30,
+    "monthly_qualified_consultations_target": 10
+  },
+  "prospecting": {
+    "daily_outreach": 100,
+    "channels": ["cold_email", "linkedin_dm", "instagram_dm"],
+    "follow_up_sequence_days": [0, 3, 7],
+    "sprint_duration_days": 14
+  }
+}

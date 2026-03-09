@@ -1,0 +1,29 @@
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node modules (if any tooling is added later)
+node_modules/
+
+# Temporary files
+tmp/
+*.tmp
+*.log
+
+# Sensitive files
+*.pem
+*.key
+credentials.json
+token.json
