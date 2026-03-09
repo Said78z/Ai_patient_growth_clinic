@@ -1,0 +1,18 @@
+[
+  {
+    "nom": "Clinique Exemple Paris",
+    "site": "https://example-clinic.fr",
+    "ville": "Paris",
+    "pays": "France",
+    "type": "Clinique esthétique",
+    "source": "https://example-clinic.fr"
+  },
+  {
+    "nom": "Institut Beauté Lyon",
+    "site": "https://institut-beaute-lyon.fr",
+    "ville": "Lyon",
+    "pays": "France",
+    "type": "Institut médico-esthétique",
+    "source": "https://institut-beaute-lyon.fr"
+  }
+]
