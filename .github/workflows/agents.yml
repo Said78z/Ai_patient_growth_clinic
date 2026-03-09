@@ -1,0 +1,42 @@
+name: Run AI Agent Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: "OpenAI model to use (e.g. gpt-4o-mini, gpt-4o)"
+        required: false
+        default: "gpt-4o-mini"
+
+permissions:
+  contents: write
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run orchestrator
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          python src/run_orchestrator.py --model "${{ inputs.model }}"
+
+      - name: Upload outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-outputs-${{ github.run_id }}
+          path: |
+            outputs/
+            data/processed/
+          retention-days: 30

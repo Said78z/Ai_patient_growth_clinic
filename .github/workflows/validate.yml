@@ -37,7 +37,7 @@ jobs:
         run: |
           echo "=== Validating directory structure ==="
           errors=0
-          for dir in docs configs scripts landing n8n; do
+          for dir in docs configs scripts landing n8n prompts config src; do
             if [ -d "$dir" ]; then
               echo "✅ $dir/"
             else
@@ -50,6 +50,7 @@ jobs:
           echo "=== Validating required files ==="
           required_files=(
             "README.md"
+            "requirements.txt"
             "docs/positioning.md"
             "docs/offer.md"
             "docs/prospecting-playbook.md"
@@ -60,6 +61,16 @@ jobs:
             "scripts/call-script.md"
             "landing/landing-copy.json"
             "n8n/patient-growth-intake-workflow.json"
+            "prompts/orchestrator.md"
+            "prompts/scraper.md"
+            "prompts/research.md"
+            "prompts/enricher.md"
+            "prompts/qualifier.md"
+            "prompts/outreach.md"
+            "config/targets.json"
+            "src/run_orchestrator.py"
+            "src/run_agent.py"
+            "src/utils.py"
           )
 
           for f in "${required_files[@]}"; do
