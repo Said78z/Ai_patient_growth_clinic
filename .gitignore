@@ -22,6 +22,11 @@ tmp/
 *.tmp
 *.log
 
+# Python cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
 # Generated pipeline data — committed to gitkeep dirs only
 data/raw/*.json
 data/processed/*.json
